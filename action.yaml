@@ -1,0 +1,27 @@
+name: 'uninstall-helm-releases'
+description: ''
+inputs:
+  releases:
+    description: ''
+    required: true
+  kubeconfig:
+    description: ''
+    required: false
+  kubeconfig_file:
+    description: ''
+    required: false
+    default: ${{ github.workspace }}/kubeconfig
+runs:
+  using: 'composite'
+  steps:
+    - run: echo '${{ inputs.kubeconfig }}' > ${{ inputs.kubeconfig_file }} && chmod 0400 ${{ inputs.kubeconfig_file }}
+      if: inputs.kubeconfig
+      shell: bash
+    - run: |
+        for RELEASE in ${{ inputs.releases }}; do
+          source "${RELEASE}/parameters"
+          helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} --debug
+        done
+      shell: bash
+      env:
+        KUBECONFIG: ${{ inputs.kubeconfig_file }}
